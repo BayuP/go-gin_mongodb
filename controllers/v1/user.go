@@ -56,3 +56,13 @@ func DeleteUser(c *gin.Context) {
 
 	helpers.Respond(c.Writer, response)
 }
+
+//LoginUser ..
+func LoginUser(c *gin.Context) {
+	var user *model.User
+	c.BindJSON(&user)
+
+	response := v1s.Login(user)
+
+	helpers.Respond(c.Writer, response)
+}

@@ -5,10 +5,15 @@ import (
 	"fmt"
 	helper "go-gin_mongodb/helpers"
 	"go-gin_mongodb/resource/models"
+	responseModel "go-gin_mongodb/resource/responseModel/v1"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
+
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -135,4 +140,53 @@ func DeleteByID(id string) map[string]interface{} {
 	reponse := helper.Message(http.StatusOK, "Succesfull Delete user")
 	reponse["data"] = nil
 	return reponse
+}
+
+//Login ...
+func Login(model *models.User) map[string]interface{} {
+	user := models.User{}
+
+	e := godotenv.Load()
+	if e != nil {
+		fmt.Print(e)
+	}
+	secretKey := os.Getenv("secret_key")
+
+	err := collection.FindOne(context.TODO(), bson.M{"username": model.Username, "password": model.Password}).Decode(&user)
+
+	if err != nil {
+		log.Printf("Error get users : %v\n", err)
+		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
+		response["data"] = nil
+		return response
+	}
+
+	expiredTime := time.Now().Add(3 * time.Minute)
+
+	claims := &models.Token{
+		Username: user.Username,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: expiredTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
+	fmt.Println(token)
+	tokenString, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		log.Printf("Error creating jwt users : %v\n", err)
+		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
+		response["data"] = nil
+		return response
+	}
+
+	response := responseModel.LoginResponse{
+		Username: user.Username,
+		Token:    tokenString,
+	}
+
+	reponse := helper.Message(http.StatusOK, "Succesfull Login")
+	reponse["data"] = response
+	return reponse
+
 }
