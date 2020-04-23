@@ -39,8 +39,9 @@ func AuthMiddlewares() gin.HandlerFunc {
 				"data":    nil,
 			})
 		} else {
-			fmt.Println("masuk")
+			c.Set("credUser", cred.ID)
 			c.Next()
+
 		}
 
 	}

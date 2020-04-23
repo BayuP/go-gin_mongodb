@@ -29,6 +29,7 @@ func SetupRouter() *gin.Engine {
 
 	v1.Use(middleware.AuthMiddlewares())
 	{
+
 		v1.GET("/user", v1Controller.GetUser)
 	}
 

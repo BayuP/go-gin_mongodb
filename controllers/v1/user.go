@@ -41,9 +41,9 @@ func UpdateUser(c *gin.Context) {
 
 //GetUser ..
 func GetUser(c *gin.Context) {
-	userID := c.Query("id")
-
-	response := v1s.GetByID(userID)
+	//userID := c.Query("id")
+	idUser := c.MustGet("credUser").(string)
+	response := v1s.GetByID(idUser)
 
 	helpers.Respond(c.Writer, response)
 }

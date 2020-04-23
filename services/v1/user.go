@@ -121,8 +121,13 @@ func GetByID(id string) map[string]interface{} {
 		return response
 	}
 
+	userResponse := responseModel.UserResponse{
+		ID:       user.ID,
+		Username: user.Username,
+	}
+
 	reponse := helper.Message(http.StatusOK, "Succesfull Get user")
-	reponse["data"] = user
+	reponse["data"] = userResponse
 	return reponse
 }
 
@@ -165,6 +170,7 @@ func Login(model *models.User) map[string]interface{} {
 
 	claims := &models.Token{
 		Username: user.Username,
+		ID:       user.ID,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: expiredTime.Unix(),
 		},
