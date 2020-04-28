@@ -5,6 +5,7 @@ import (
 	"fmt"
 	helper "go-gin_mongodb/helpers"
 	"go-gin_mongodb/resource/models"
+	requestModel "go-gin_mongodb/resource/requestModel/v1"
 	responseModel "go-gin_mongodb/resource/responseModel/v1"
 	"log"
 	"net/http"
@@ -158,15 +159,22 @@ func Login(model *models.User) map[string]interface{} {
 	secretKey := os.Getenv("secret_key")
 
 	err := collection.FindOne(context.TODO(), bson.M{"username": model.Username, "password": model.Password}).Decode(&user)
+	fmt.Println(err)
 
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Printf("Error get users : %v\n", err)
+			response := helper.Message(http.StatusNotFound, "User not found")
+			response["data"] = nil
+			return response
+		}
 		log.Printf("Error get users : %v\n", err)
 		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
 		response["data"] = nil
 		return response
 	}
 
-	expiredTime := time.Now().Add(3 * time.Minute)
+	expiredTime := time.Now().Add(1000 * time.Minute)
 
 	claims := &models.Token{
 		Username: user.Username,
@@ -195,4 +203,40 @@ func Login(model *models.User) map[string]interface{} {
 	reponse["data"] = response
 	return reponse
 
+}
+
+//ChangePass ...
+func ChangePass(id string, req *requestModel.ChangePassReqModel) map[string]interface{} {
+
+	filter := bson.M{"$and": []bson.M{
+		bson.M{"id": id},
+		bson.M{"password": req.OldPassword},
+	}}
+	newData := bson.M{
+		"$set": bson.M{
+			"password":   req.NewPassword,
+			"updated_at": time.Now(),
+		},
+	}
+	fmt.Println(req.NewPassword)
+	fmt.Println(req.OldPassword)
+
+	result, err := collection.UpdateOne(context.TODO(), filter, newData)
+
+	if result.MatchedCount == 0 {
+		response := helper.Message(http.StatusOK, "Old Password Didnt match")
+		response["data"] = nil
+		return response
+	}
+
+	if err != nil {
+		log.Printf("Error when updating users : %v\n", err)
+		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
+		response["data"] = nil
+		return response
+	}
+
+	response := helper.Message(http.StatusOK, "Successfull Change Password")
+	response["data"] = nil
+	return response
 }

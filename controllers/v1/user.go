@@ -3,6 +3,7 @@ package v1
 import (
 	helpers "go-gin_mongodb/helpers"
 	model "go-gin_mongodb/resource/models"
+	req "go-gin_mongodb/resource/requestModel/v1"
 	v1s "go-gin_mongodb/services/v1"
 
 	"github.com/gin-gonic/gin"
@@ -65,4 +66,16 @@ func LoginUser(c *gin.Context) {
 	response := v1s.Login(user)
 
 	helpers.Respond(c.Writer, response)
+}
+
+//ChangePassword ...
+func ChangePassword(c *gin.Context) {
+	idUser := c.MustGet("credUser").(string)
+	var reqModel *req.ChangePassReqModel
+	c.BindJSON(&reqModel)
+
+	response := v1s.ChangePass(idUser, reqModel)
+
+	helpers.Respond(c.Writer, response)
+
 }

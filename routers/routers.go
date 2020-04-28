@@ -17,20 +17,21 @@ func SetupRouter() *gin.Engine {
 	db.Connect()
 	// Routing endpoint
 
-	v1 := r.Group("/api/v1")
+	v1 := r.Group("/api/v1/user")
 
-	v1.GET("/users", v1Controller.GetAllUsers)
+	v1.GET("/all", v1Controller.GetAllUsers)
 	//v1.GET("/user", v1Controller.GetUser)
-	v1.POST("/user", v1Controller.CreateUser)
-	v1.PUT("/user", v1Controller.UpdateUser)
-	v1.DELETE("/user", v1Controller.DeleteUser)
+	v1.POST("/", v1Controller.CreateUser)
+	v1.PUT("/", v1Controller.UpdateUser)
+	v1.DELETE("/", v1Controller.DeleteUser)
 
 	v1.POST("/login", v1Controller.LoginUser)
 
 	v1.Use(middleware.AuthMiddlewares())
 	{
 
-		v1.GET("/user", v1Controller.GetUser)
+		v1.GET("/", v1Controller.GetUser)
+		v1.POST("/changepass", v1Controller.ChangePassword)
 	}
 
 	return r
