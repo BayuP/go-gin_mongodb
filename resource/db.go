@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	userService "go-gin_mongodb/services/v1"
+	service "go-gin_mongodb/services/v1"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -48,6 +48,7 @@ func Connect() {
 	}
 
 	db := client.Database(dbName)
-	userService.UserCollections(db)
+	service.UserCollections(db)
+	service.ProductsCollections(db)
 	return
 }

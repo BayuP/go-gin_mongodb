@@ -17,21 +17,27 @@ func SetupRouter() *gin.Engine {
 	db.Connect()
 	// Routing endpoint
 
-	v1 := r.Group("/api/v1/user")
+	user := r.Group("/api/v1/user")
+	product := r.Group("/api/v1/product")
 
-	v1.GET("/all", v1Controller.GetAllUsers)
+	user.GET("/all", v1Controller.GetAllUsers)
 	//v1.GET("/user", v1Controller.GetUser)
-	v1.POST("/", v1Controller.CreateUser)
-	v1.PUT("/", v1Controller.UpdateUser)
-	v1.DELETE("/", v1Controller.DeleteUser)
+	user.POST("/", v1Controller.CreateUser)
+	user.PUT("/", v1Controller.UpdateUser)
+	user.DELETE("/", v1Controller.DeleteUser)
 
-	v1.POST("/login", v1Controller.LoginUser)
+	user.POST("/login", v1Controller.LoginUser)
 
-	v1.Use(middleware.AuthMiddlewares())
+	user.Use(middleware.AuthMiddlewares())
 	{
 
-		v1.GET("/", v1Controller.GetUser)
-		v1.POST("/changepass", v1Controller.ChangePassword)
+		user.GET("/", v1Controller.GetUser)
+		user.POST("/changepass", v1Controller.ChangePassword)
+	}
+
+	product.Use(middleware.AuthMiddlewares())
+	{
+		product.POST("/create_product", v1Controller.CreateProduct)
 	}
 
 	return r

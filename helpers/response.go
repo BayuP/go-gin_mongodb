@@ -20,8 +20,11 @@ func Message(status int, message string) map[string]interface{} {
 func Respond(w http.ResponseWriter, data map[string]interface{}) {
 	w.Header().Add("Content-Type", "application/json")
 
+	// w.WriteHeader(data["status"].(int))
+
 	if data["status"] == http.StatusInternalServerError {
-		http.Error(w, "Something Wrong", http.StatusInternalServerError)
+		w.WriteHeader(data["status"].(int))
+		json.NewEncoder(w).Encode(data)
 	} else {
 		json.NewEncoder(w).Encode(data)
 	}
