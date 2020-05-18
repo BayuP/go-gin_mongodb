@@ -50,5 +50,6 @@ func Connect() {
 	db := client.Database(dbName)
 	service.UserCollections(db)
 	service.ProductsCollections(db)
+	service.CategoriesCollections(db)
 	return
 }
