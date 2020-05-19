@@ -34,3 +34,22 @@ func GetCategory(c *gin.Context) {
 
 	helpers.Respond(c.Writer, response)
 }
+
+//UpdateCategoryByID ...
+func UpdateCategoryByID(c *gin.Context) {
+	idUser := c.MustGet("credUser").(string)
+	var req *req.UpdateCatReq
+	c.BindJSON(&req)
+	response := v1s.UpdateCategories(idUser, req)
+
+	helpers.Respond(c.Writer, response)
+}
+
+//DeleteCatByID ...
+func DeleteCatByID(c *gin.Context) {
+	idUser := c.MustGet("credUser").(string)
+	catID := c.Query("id")
+	response := v1s.DeleteCategoriesByID(idUser, catID)
+
+	helpers.Respond(c.Writer, response)
+}

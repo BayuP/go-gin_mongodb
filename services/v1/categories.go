@@ -131,3 +131,74 @@ func GetCategoriesByID(id string) map[string]interface{} {
 	reponse["data"] = categoriesResponse
 	return reponse
 }
+
+//UpdateCategories ..
+func UpdateCategories(id string, category *requestModel.UpdateCatReq) map[string]interface{} {
+	//filter := bson.M{""}
+	filter := bson.M{"$and": []bson.M{
+		bson.M{"id": category.ID},
+		bson.M{"base.deletedby": ""},
+	}}
+
+	newData := bson.M{
+		"$set": bson.M{
+			"name":             category.Name,
+			"description":      category.Description,
+			"base.updatedtime": time.Now(),
+			"base.updatedby":   id,
+		},
+	}
+	result, err := collectionCategories.UpdateOne(context.TODO(), filter, newData)
+
+	if err != nil {
+		log.Printf("Error when updating product : %v\n", err)
+		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
+		response["data"] = nil
+		return response
+	}
+
+	if result.MatchedCount == 0 {
+		response := helper.Message(http.StatusNotFound, "Not found Document")
+		response["data"] = nil
+		return response
+	}
+
+	reponse := helper.Message(http.StatusOK, "Succesfull Edit category")
+	reponse["data"] = nil
+	return reponse
+}
+
+//DeleteCategoriesByID ..
+func DeleteCategoriesByID(userID string, id string) map[string]interface{} {
+
+	filter := bson.M{"$and": []bson.M{
+		bson.M{"id": id},
+		bson.M{"base.deletedby": ""},
+	}}
+
+	newData := bson.M{
+		"$set": bson.M{
+			"base.deletedtime": time.Now(),
+			"base.deletedby":   userID,
+		},
+	}
+
+	result, err := collectionCategories.UpdateOne(context.TODO(), filter, newData)
+
+	if err != nil {
+		log.Printf("Error when delete users : %v\n", err)
+		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
+		response["data"] = nil
+		return response
+	}
+
+	if result.MatchedCount == 0 {
+		response := helper.Message(http.StatusNotFound, "Not found Document")
+		response["data"] = nil
+		return response
+	}
+
+	reponse := helper.Message(http.StatusOK, "Succesfull Delete product")
+	reponse["data"] = nil
+	return reponse
+}
