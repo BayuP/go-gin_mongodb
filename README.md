@@ -1,2 +1,2 @@
 # go-gin_mongodb
-Simple project using go gin and mongo driver
+Simple project POS (Point of Sales) System using go gin and mongo driver
