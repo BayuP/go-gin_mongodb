@@ -28,9 +28,11 @@ func ProductsCollections(m *mongo.Database) {
 func CreateProduct(id string, req *requestModel.CreateProdReq) map[string]interface{} {
 
 	newProduct := models.Products{
-		ID:    uuid.New().String(),
-		Name:  req.Name,
-		Price: req.Price,
+		ID:         uuid.New().String(),
+		Name:       req.Name,
+		Price:      req.Price,
+		CategoryID: req.CategoryID,
+		Stock:      req.Stock,
 		Base: models.Base{
 			CreatedTime: time.Now(),
 			CreatedBy:   id,
@@ -77,9 +79,11 @@ func GetAllProduct() map[string]interface{} {
 		// }
 		// products = append(products, product)
 		prodRes := resModel.ProductResponse{
-			ID:    product.ID,
-			Name:  product.Name,
-			Price: product.Price,
+			ID:         product.ID,
+			Name:       product.Name,
+			Price:      product.Price,
+			CategoryID: product.CategoryID,
+			Stock:      product.Stock,
 		}
 		result = append(result, prodRes)
 	}
@@ -121,9 +125,11 @@ func GetProductByID(id string) map[string]interface{} {
 	}
 
 	productResponse := resModel.ProductResponse{
-		ID:    product.ID,
-		Name:  product.Name,
-		Price: product.Price,
+		ID:         product.ID,
+		Name:       product.Name,
+		Price:      product.Price,
+		CategoryID: product.CategoryID,
+		Stock:      product.Stock,
 	}
 
 	reponse := helper.Message(http.StatusOK, "Succesfull Get product")
@@ -143,6 +149,8 @@ func UpdateProduct(id string, product *requestModel.UpdateProdReq) map[string]in
 		"$set": bson.M{
 			"name":             product.Name,
 			"price":            product.Price,
+			"categoryid":       product.CategoryID,
+			"stock":            product.Stock,
 			"base.updatedtime": time.Now(),
 			"base.updatedby":   id,
 		},
