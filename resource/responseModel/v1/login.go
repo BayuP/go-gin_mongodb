@@ -4,4 +4,5 @@ package v1
 type LoginResponse struct {
 	Token    string `json:"token"`
 	Username string `json:"username"`
+	ID       string `json:"id"`
 }

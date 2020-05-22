@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	helpers "go-gin_mongodb/helpers"
 	model "go-gin_mongodb/resource/models"
 	req "go-gin_mongodb/resource/requestModel/v1"
@@ -11,31 +12,30 @@ import (
 
 //GetAllUsers ..
 func GetAllUsers(c *gin.Context) {
-	var userService v1s.UserService
 
-	response := userService.GetAll()
+	response := v1s.GetAll()
 
 	helpers.Respond(c.Writer, response)
 }
 
 //CreateUser ....
 func CreateUser(c *gin.Context) {
-	var userService v1s.UserService
-	var user *model.User
+	idUser := c.MustGet("credUser").(string)
+	var user *req.CreateUserReq
 	c.BindJSON(&user)
 
-	response := userService.Create(user)
+	response := v1s.Create(idUser, user)
 
 	helpers.Respond(c.Writer, response)
 }
 
 //UpdateUser ..
 func UpdateUser(c *gin.Context) {
-	userID := c.Query("id")
-	var user *model.User
+	idUser := c.MustGet("credUser").(string)
+	var user *req.EditUserReq
 	c.BindJSON(&user)
 
-	response := v1s.Update(userID, user)
+	response := v1s.Update(idUser, user)
 
 	helpers.Respond(c.Writer, response)
 }
@@ -45,15 +45,15 @@ func GetUser(c *gin.Context) {
 	//userID := c.Query("id")
 	idUser := c.MustGet("credUser").(string)
 	response := v1s.GetByID(idUser)
-
+	fmt.Println(idUser)
 	helpers.Respond(c.Writer, response)
 }
 
 //DeleteUser ..
 func DeleteUser(c *gin.Context) {
 	userID := c.Query("id")
-
-	response := v1s.DeleteByID(userID)
+	idUser := c.MustGet("credUser").(string)
+	response := v1s.DeleteByID(idUser, userID)
 
 	helpers.Respond(c.Writer, response)
 }

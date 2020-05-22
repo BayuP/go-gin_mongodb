@@ -34,11 +34,12 @@ func UserCollections(m *mongo.Database) {
 }
 
 //GetAll ...
-func (us *UserService) GetAll() map[string]interface{} {
+func GetAll() map[string]interface{} {
+	filter := bson.M{"base.deletedby": ""}
 	// userdb := us.User
-	usersresponse := []*models.User{}
+	usersresponse := []responseModel.UserResponse{}
 	//get all user from db
-	cursor, err := collection.Find(context.TODO(), bson.M{})
+	cursor, err := collection.Find(context.TODO(), filter)
 
 	if err != nil {
 		log.Printf("Error when getting all user %v\n", err)
@@ -50,7 +51,12 @@ func (us *UserService) GetAll() map[string]interface{} {
 	for cursor.Next(context.TODO()) {
 		var user *models.User
 		cursor.Decode(&user)
-		usersresponse = append(usersresponse, user)
+		userRes := responseModel.UserResponse{
+			ID:       user.ID,
+			Username: user.Username,
+		}
+
+		usersresponse = append(usersresponse, userRes)
 	}
 
 	reponse := helper.Message(http.StatusOK, "Succesfull get All user")
@@ -59,14 +65,16 @@ func (us *UserService) GetAll() map[string]interface{} {
 }
 
 //Create ..
-func (us *UserService) Create(user *models.User) map[string]interface{} {
+func Create(id string, req *requestModel.CreateUserReq) map[string]interface{} {
 
 	newUser := models.User{
-		ID:        uuid.New().String(),
-		Username:  user.Username,
-		Password:  user.Password,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:       uuid.New().String(),
+		Username: req.Username,
+		Password: req.Password,
+		Base: models.Base{
+			CreatedTime: time.Now(),
+			CreatedBy:   id,
+		},
 	}
 
 	_, err := collection.InsertOne(context.TODO(), newUser)
@@ -84,22 +92,32 @@ func (us *UserService) Create(user *models.User) map[string]interface{} {
 }
 
 //Update ..
-func Update(id string, user *models.User) map[string]interface{} {
+func Update(id string, user *requestModel.EditUserReq) map[string]interface{} {
+
+	filter := bson.M{"$and": []bson.M{
+		bson.M{"id": user.ID},
+		bson.M{"base.deletedby": ""},
+	}}
+
 	newData := bson.M{
 		"$set": bson.M{
-			"username":   user.Username,
-			"password":   user.Password,
-			"updated_at": time.Now(),
+			"username":         user.Username,
+			"base.updatedtime": time.Now(),
+			"base.updatedby":   id,
 		},
 	}
-	fmt.Println(user.Username)
-	fmt.Println(id)
 
-	_, err := collection.UpdateOne(context.TODO(), bson.M{"id": id}, newData)
+	result, err := collection.UpdateOne(context.TODO(), filter, newData)
 
 	if err != nil {
 		log.Printf("Error when updating users : %v\n", err)
 		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
+		response["data"] = nil
+		return response
+	}
+
+	if result.MatchedCount == 0 {
+		response := helper.Message(http.StatusNotFound, "Not found Document")
 		response["data"] = nil
 		return response
 	}
@@ -111,11 +129,22 @@ func Update(id string, user *models.User) map[string]interface{} {
 
 // GetByID ..
 func GetByID(id string) map[string]interface{} {
+	filter := bson.M{"$and": []bson.M{
+		bson.M{"id": id},
+		bson.M{"base.deletedby": ""},
+	}}
+
 	user := models.User{}
 
-	err := collection.FindOne(context.TODO(), bson.M{"id": id}).Decode(&user)
+	err := collection.FindOne(context.TODO(), filter).Decode(&user)
 
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			response := helper.Message(http.StatusNotFound, "Not found document")
+			response["data"] = nil
+			return response
+		}
+
 		log.Printf("Error when get users : %v\n", err)
 		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
 		response["data"] = nil
@@ -133,12 +162,30 @@ func GetByID(id string) map[string]interface{} {
 }
 
 // DeleteByID ..
-func DeleteByID(id string) map[string]interface{} {
-	_, err := collection.DeleteOne(context.TODO(), bson.M{"id": id})
+func DeleteByID(userID string, id string) map[string]interface{} {
+	filter := bson.M{"$and": []bson.M{
+		bson.M{"id": id},
+		bson.M{"base.deletedby": ""},
+	}}
+
+	newData := bson.M{
+		"$set": bson.M{
+			"base.deletedtime": time.Now(),
+			"base.deletedby":   userID,
+		},
+	}
+
+	result, err := collection.UpdateOne(context.TODO(), filter, newData)
 
 	if err != nil {
 		log.Printf("Error when delete users : %v\n", err)
 		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
+		response["data"] = nil
+		return response
+	}
+
+	if result.MatchedCount == 0 {
+		response := helper.Message(http.StatusNotFound, "Not found Document")
 		response["data"] = nil
 		return response
 	}
@@ -150,6 +197,17 @@ func DeleteByID(id string) map[string]interface{} {
 
 //Login ...
 func Login(model *models.User) map[string]interface{} {
+
+	filter := bson.M{"$and": []bson.M{
+		bson.M{"username": model.Username},
+		bson.M{"base.deletedby": ""},
+	}}
+
+	filterUser := bson.M{"$and": []bson.M{
+		bson.M{"username": model.Username},
+		bson.M{"password": model.Password},
+	}}
+
 	user := models.User{}
 
 	e := godotenv.Load()
@@ -158,7 +216,7 @@ func Login(model *models.User) map[string]interface{} {
 	}
 	secretKey := os.Getenv("secret_key")
 
-	err := collection.FindOne(context.TODO(), bson.M{"username": model.Username, "password": model.Password}).Decode(&user)
+	err := collection.FindOne(context.TODO(), filter).Decode(&user)
 	fmt.Println(err)
 
 	if err != nil {
@@ -169,6 +227,22 @@ func Login(model *models.User) map[string]interface{} {
 			return response
 		}
 		log.Printf("Error get users : %v\n", err)
+		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
+		response["data"] = nil
+		return response
+	}
+
+	errFindUser := collection.FindOne(context.TODO(), filterUser).Decode(&user)
+	fmt.Println(err)
+
+	if errFindUser != nil {
+		if errFindUser == mongo.ErrNoDocuments {
+			log.Printf("Error get users : %v\n", errFindUser)
+			response := helper.Message(http.StatusNotFound, "Username & Password not Match")
+			response["data"] = nil
+			return response
+		}
+		log.Printf("Error get users : %v\n", errFindUser)
 		response := helper.Message(http.StatusInternalServerError, "Someting wrong")
 		response["data"] = nil
 		return response
@@ -197,6 +271,7 @@ func Login(model *models.User) map[string]interface{} {
 	response := responseModel.LoginResponse{
 		Username: user.Username,
 		Token:    tokenString,
+		ID:       user.ID,
 	}
 
 	reponse := helper.Message(http.StatusOK, "Succesfull Login")
@@ -209,13 +284,14 @@ func Login(model *models.User) map[string]interface{} {
 func ChangePass(id string, req *requestModel.ChangePassReqModel) map[string]interface{} {
 
 	filter := bson.M{"$and": []bson.M{
-		bson.M{"id": id},
+		bson.M{"id": req.ID},
 		bson.M{"password": req.OldPassword},
 	}}
 	newData := bson.M{
 		"$set": bson.M{
-			"password":   req.NewPassword,
-			"updated_at": time.Now(),
+			"password":         req.NewPassword,
+			"base.updatedtime": time.Now(),
+			"base.updatedby":   id,
 		},
 	}
 	fmt.Println(req.NewPassword)
