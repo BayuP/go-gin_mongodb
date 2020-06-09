@@ -18,3 +18,19 @@ func CreateCustomer(c *gin.Context) {
 
 	helpers.Respond(c.Writer, response)
 }
+
+//GetAllCustomer ...
+func GetAllCustomer(c *gin.Context) {
+
+	response := v1s.GetAllCustomer()
+
+	helpers.Respond(c.Writer, response)
+}
+
+//GetCustomer ..
+func GetCustomer(c *gin.Context) {
+	customerID := c.Query("id")
+	response := v1s.GetCustomerByID(customerID)
+
+	helpers.Respond(c.Writer, response)
+}

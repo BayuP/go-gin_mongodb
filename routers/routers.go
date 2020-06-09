@@ -57,6 +57,8 @@ func SetupRouter() *gin.Engine {
 	customer.Use(middleware.AuthMiddlewares())
 	{
 		customer.POST("/create_customer", v1Controller.CreateCustomer)
+		customer.GET("/", v1Controller.GetCustomer)
+		customer.GET("/all", v1Controller.GetAllCustomer)
 	}
 
 	return r
