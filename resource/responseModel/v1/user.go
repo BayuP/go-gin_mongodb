@@ -4,4 +4,5 @@ package v1
 type UserResponse struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
+	RoleID   string `json:"roleId"`
 }

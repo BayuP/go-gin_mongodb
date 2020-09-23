@@ -18,7 +18,7 @@ func main() {
 
 	r := routers.SetupRouter()
 
-	port := os.Getenv("port")
+	port := "8080"
 
 	if len(os.Args) > 1 {
 		reqPort := os.Args[1]

@@ -10,7 +10,7 @@ import (
 
 //CreateCategory ....
 func CreateCategory(c *gin.Context) {
-	idUser := c.MustGet("credUser").(string)
+	idUser := "System"
 	var req *req.CreateCatReq
 	c.BindJSON(&req)
 

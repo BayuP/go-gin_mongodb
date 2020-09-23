@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	service "go-gin_mongodb/services/v1"
@@ -23,9 +22,9 @@ func Connect() {
 		fmt.Print(e)
 	}
 
-	dbName := os.Getenv("db_name")
-	dbHost := os.Getenv("db_host")
-	dbPort := os.Getenv("db_port")
+	dbName := "go_mongo"
+	dbHost := "127.0.0.1"
+	dbPort := "27017"
 
 	clientOptions := options.Client().ApplyURI("mongodb://" + dbHost + ":" + dbPort)
 	client, err := mongo.NewClient(clientOptions)
@@ -52,5 +51,6 @@ func Connect() {
 	service.ProductsCollections(db)
 	service.CategoriesCollections(db)
 	service.CustomersCollections(db)
+	service.RolesCollections(db)
 	return
 }

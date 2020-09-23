@@ -20,7 +20,8 @@ func GetAllUsers(c *gin.Context) {
 
 //CreateUser ....
 func CreateUser(c *gin.Context) {
-	idUser := c.MustGet("credUser").(string)
+	// idUser := c.MustGet("credUser").(string)
+	idUser := "System"
 	var user *req.CreateUserReq
 	c.BindJSON(&user)
 

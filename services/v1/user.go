@@ -54,6 +54,7 @@ func GetAll() map[string]interface{} {
 		userRes := responseModel.UserResponse{
 			ID:       user.ID,
 			Username: user.Username,
+			RoleID:   user.RoleID,
 		}
 
 		usersresponse = append(usersresponse, userRes)
@@ -71,6 +72,7 @@ func Create(id string, req *requestModel.CreateUserReq) map[string]interface{} {
 		ID:       uuid.New().String(),
 		Username: req.Username,
 		Password: req.Password,
+		RoleID:   req.RoleID,
 		Base: models.Base{
 			CreatedTime: time.Now(),
 			CreatedBy:   id,
@@ -102,6 +104,7 @@ func Update(id string, user *requestModel.EditUserReq) map[string]interface{} {
 	newData := bson.M{
 		"$set": bson.M{
 			"username":         user.Username,
+			"roleID":           user.RoleID,
 			"base.updatedtime": time.Now(),
 			"base.updatedby":   id,
 		},
@@ -154,6 +157,7 @@ func GetByID(id string) map[string]interface{} {
 	userResponse := responseModel.UserResponse{
 		ID:       user.ID,
 		Username: user.Username,
+		RoleID:   user.RoleID,
 	}
 
 	reponse := helper.Message(http.StatusOK, "Succesfull Get user")
@@ -253,6 +257,7 @@ func Login(model *models.User) map[string]interface{} {
 	claims := &models.Token{
 		Username: user.Username,
 		ID:       user.ID,
+		RoleID:   user.RoleID,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: expiredTime.Unix(),
 		},
@@ -272,6 +277,7 @@ func Login(model *models.User) map[string]interface{} {
 		Username: user.Username,
 		Token:    tokenString,
 		ID:       user.ID,
+		RoleID:   user.RoleID,
 	}
 
 	reponse := helper.Message(http.StatusOK, "Succesfull Login")
