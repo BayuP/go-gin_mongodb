@@ -22,6 +22,7 @@ func SetupRouter() *gin.Engine {
 	category := r.Group("/api/v1/category")
 	customer := r.Group("/api/v1/customer")
 	role := r.Group("/api/v1/role")
+	transaction := r.Group("/api/v1/transaction")
 
 	user.POST("/login", v1Controller.LoginUser)
 
@@ -67,6 +68,12 @@ func SetupRouter() *gin.Engine {
 		customer.POST("/create_customer", v1Controller.CreateCustomer)
 		customer.GET("/", v1Controller.GetCustomer)
 		customer.GET("/all", v1Controller.GetAllCustomer)
+
+	}
+
+	transaction.Use(middleware.AuthMiddlewares())
+	{
+		transaction.POST("/", v1Controller.CreateTrans)
 	}
 
 	return r

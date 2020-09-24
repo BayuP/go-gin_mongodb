@@ -39,7 +39,7 @@ func AuthMiddlewares() gin.HandlerFunc {
 				"data":    nil,
 			})
 		} else {
-			if (cred.RoleID != "72848e86-112a-4e40-ad60-6ca2f87dadb7") || (cred.RoleID != "216d86e8-90b3-488b-aa30-659a1af9373c") {
+			if (cred.RoleID != "72848e86-112a-4e40-ad60-6ca2f87dadb7") && (cred.RoleID != "216d86e8-90b3-488b-aa30-659a1af9373c") {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 					"status":  http.StatusUnauthorized,
 					"message": "Unauthorized user",
@@ -125,6 +125,7 @@ func AuthMiddlewaresCashier() gin.HandlerFunc {
 				"data":    nil,
 			})
 		} else {
+			fmt.Println(cred.ID)
 			c.Set("credUser", cred.ID)
 			c.Next()
 
